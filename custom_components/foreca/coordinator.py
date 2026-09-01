@@ -4,6 +4,7 @@ import logging
 from dataclasses import dataclass
 
 from pyforeca import (
+    AirQualityForecast,
     CurrentWeather,
     DailyForecast,
     ForecaApiClient,
@@ -32,6 +33,7 @@ class ForecaWeatherData:
     current: CurrentWeather
     hourly: list[HourlyForecast]
     daily: list[DailyForecast]
+    air_quality: AirQualityForecast | None
 
 
 class ForecaUpdateCoordinator(DataUpdateCoordinator[ForecaWeatherData]):
@@ -65,4 +67,20 @@ class ForecaUpdateCoordinator(DataUpdateCoordinator[ForecaWeatherData]):
             raise ConfigEntryAuthFailed("API key was rejected") from err
         except ForecaError as err:
             raise UpdateFailed(f"Error communicating with the Foreca API: {err}") from err
-        return ForecaWeatherData(current=current, hourly=hourly, daily=daily)
+
+        # Air quality is optional: not every location has AQ data, and the
+        # weather entity must not go unavailable because of it.
+        air_quality: AirQualityForecast | None = None
+        try:
+            aq_forecast = await self.client.air_quality_hourly(
+                self.location, periods=1
+            )
+            air_quality = aq_forecast[0] if aq_forecast else None
+        except ForecaAuthError as err:
+            raise ConfigEntryAuthFailed("API key was rejected") from err
+        except ForecaError as err:
+            _LOGGER.warning("Air quality data unavailable: %s", err)
+
+        return ForecaWeatherData(
+            current=current, hourly=hourly, daily=daily, air_quality=air_quality
+        )

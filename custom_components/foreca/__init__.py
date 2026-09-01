@@ -5,7 +5,7 @@ from homeassistant.core import HomeAssistant
 
 from .coordinator import ForecaConfigEntry, ForecaUpdateCoordinator
 
-PLATFORMS = [Platform.WEATHER]
+PLATFORMS = [Platform.SENSOR, Platform.WEATHER]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ForecaConfigEntry) -> bool:

@@ -2,7 +2,13 @@ from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from pyforeca import CurrentWeather, DailyForecast, HourlyForecast, Location
+from pyforeca import (
+    AirQualityForecast,
+    CurrentWeather,
+    DailyForecast,
+    HourlyForecast,
+    Location,
+)
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
@@ -61,6 +67,19 @@ DAILY = [
     )
 ]
 
+AIR_QUALITY = AirQualityForecast(
+    time="2026-09-01T18:00+03:00",
+    pollutant="Ozone",
+    pollutant_phrase="Ozone",
+    aqi=23,
+    aqi_co=2,
+    aqi_no2=5,
+    aqi_o3=23,
+    aqi_so2=1,
+    aqi_pm10=8,
+    aqi_pm2p5=11,
+)
+
 LOCATION = Location(
     id=100658225,
     name="Helsinki",
@@ -87,4 +106,5 @@ def mock_client() -> Generator[MagicMock]:
         client.current = AsyncMock(return_value=CURRENT)
         client.forecast_hourly = AsyncMock(return_value=HOURLY)
         client.forecast_daily = AsyncMock(return_value=DAILY)
+        client.air_quality_hourly = AsyncMock(return_value=[AIR_QUALITY])
         yield client
