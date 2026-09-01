@@ -2,8 +2,8 @@
 
 Weather integration backed by the [Foreca Weather API](https://developer.foreca.com).
 Provides a `weather` entity with current conditions plus daily (10-day) and hourly
-(48-hour) forecasts, and air-quality sensors (general AQI, dominant pollutant, and
-per-pollutant sub-indices).
+(48-hour) forecasts, and air-quality sensors (general AQI, dominant pollutant,
+per-pollutant sub-indices, and daily AQI for the next three days).
 
 Air-quality values are the model's estimate for the current hour, not a
 monitoring-station measurement.

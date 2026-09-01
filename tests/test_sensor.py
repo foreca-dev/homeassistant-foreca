@@ -35,6 +35,14 @@ async def test_air_quality_sensors(hass: HomeAssistant, mock_client: MagicMock) 
     assert pollutant.state == "Ozone"
 
 
+async def test_daily_aqi_sensors(hass: HomeAssistant, mock_client: MagicMock) -> None:
+    await _setup(hass)
+    for day, expected in ((1, "34"), (2, "35"), (3, "31")):
+        state = hass.states.get(f"sensor.helsinki_air_quality_index_day_{day}")
+        assert state is not None, f"day {day} sensor missing"
+        assert state.state == expected
+
+
 async def test_subindex_sensors_disabled_by_default(
     hass: HomeAssistant, mock_client: MagicMock
 ) -> None:
@@ -63,3 +71,7 @@ async def test_weather_survives_air_quality_failure(
     aqi = hass.states.get("sensor.helsinki_air_quality_index")
     assert aqi is not None
     assert aqi.state == STATE_UNAVAILABLE
+
+    day1 = hass.states.get("sensor.helsinki_air_quality_index_day_1")
+    assert day1 is not None
+    assert day1.state == STATE_UNAVAILABLE

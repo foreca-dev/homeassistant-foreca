@@ -25,6 +25,7 @@
   "entity": {
     "sensor": {
       "dominant_pollutant": { "name": "Dominant pollutant" },
+      "aqi_day": { "name": "Air quality index day {forecast_day}" },
       "aqi_co": { "name": "Carbon monoxide AQI" },
       "aqi_no2": { "name": "Nitrogen dioxide AQI" },
       "aqi_o3": { "name": "Ozone AQI" },
