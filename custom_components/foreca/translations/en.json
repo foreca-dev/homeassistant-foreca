@@ -1,0 +1,25 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "Create a free account at developer.foreca.com to get an API key.",
+        "data": {
+          "api_key": "API key",
+          "location": "Location"
+        },
+        "data_description": {
+          "api_key": "Your Foreca Weather API key from the My API page",
+          "location": "Coordinates to get the weather forecast for"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Invalid authentication",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "already_configured": "Location is already configured"
+    }
+  }
+}
