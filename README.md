@@ -22,7 +22,9 @@ integration polls every 30 minutes (eight requests per poll, about 384 per day),
 well inside the Freemium plan's 2,000 requests per day.
 
 The Freemium plan is free for non-commercial use — hobbyist, student, and research
-projects — and is provided without an SLA or support. Commercial use needs a paid plan.
+projects — and is provided without an SLA or support. Commercial use, a larger quota, or the
+rest of Foreca's weather products need a
+[paid plan](https://business.foreca.com/weather-api/pricing).
 
 ## Status
 
