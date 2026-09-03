@@ -11,14 +11,16 @@ the [Foreca Weather API](https://developer.foreca.com).
 - Air-quality sensors: general AQI, dominant pollutant, per-pollutant sub-indices
   (disabled by default), and daily AQI for the next three days
 
-Air-quality values are the model's estimate for the current hour or day, not a
-monitoring-station measurement.
+Air quality follows the US EPA air quality index. The values come from atmospheric
+composition models, blended with measurements from air quality monitoring stations
+where one is close by: near a station the first hours lean on the measurements and
+then fade into the model. Further from any station, the values are model output alone.
 
 ## Getting an API key
 
 Create a free account at [developer.foreca.com](https://developer.foreca.com),
 pick the Freemium plan, verify your email and copy the key from **My API**. The
-integration polls every 30 minutes (eight requests per poll, about 384 per day),
+integration polls every 30 minutes (five requests per poll, about 240 per day),
 well inside the Freemium plan's 2,000 requests per day.
 
 The Freemium plan is free for non-commercial use — hobbyist, student, and research
@@ -33,6 +35,11 @@ This is the development home for the integration on its way into
 (`homeassistant/components/foreca/`). The `custom_components/foreca/` layout
 lets it run as-is in a development Home Assistant instance in the meantime. The
 API client lives in [pyforeca](https://github.com/foreca-dev/pyforeca).
+
+The version prepared for Home Assistant Core carries more sensors than the copy
+here — observations, precipitation nowcast and request-usage counts on top of the
+weather and air-quality entities. This repository will catch up with it, or be
+archived, once the Core integration is merged.
 
 ## Development
 
