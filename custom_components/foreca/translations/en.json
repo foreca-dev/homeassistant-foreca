@@ -1,7 +1,8 @@
 {
     "config": {
         "abort": {
-            "already_configured": "Location is already configured"
+            "already_configured": "Location is already configured",
+            "reauth_successful": "Re-authentication was successful"
         },
         "error": {
             "cannot_connect": "Failed to connect",
@@ -9,6 +10,15 @@
             "unknown": "Unexpected error"
         },
         "step": {
+            "reauth_confirm": {
+                "data": {
+                    "api_key": "API key"
+                },
+                "data_description": {
+                    "api_key": "Your Foreca Weather API key from the My API page"
+                },
+                "description": "The Foreca Weather API rejected the API key for {location}. Enter a new one from the My API page."
+            },
             "user": {
                 "data": {
                     "api_key": "API key",
