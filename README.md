@@ -35,7 +35,11 @@ API client lives in [pyforeca](https://github.com/foreca-dev/pyforeca).
 python3.13 -m venv .venv
 .venv/bin/pip install homeassistant pytest-homeassistant-custom-component -e ../pyforeca
 .venv/bin/pytest
-.venv/bin/hass -c config   # config/custom_components symlinks to ./custom_components
+
+# Run a development Home Assistant instance against this component
+mkdir -p config/custom_components
+ln -sfn ../../custom_components config/custom_components/foreca
+.venv/bin/hass -c config
 ```
 
 Maintained by [Foreca](https://business.foreca.com) in the

@@ -1,5 +1,4 @@
 .venv/
-config/*
-!config/custom_components
+config/
 __pycache__/
 .pytest_cache/
