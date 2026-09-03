@@ -1,4 +1,4 @@
-from __future__ import annotations
+"""The Foreca integration."""
 
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
@@ -9,6 +9,7 @@ PLATFORMS = [Platform.SENSOR, Platform.WEATHER]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ForecaConfigEntry) -> bool:
+    """Set up Foreca from a config entry."""
     coordinator = ForecaUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator
@@ -17,4 +18,5 @@ async def async_setup_entry(hass: HomeAssistant, entry: ForecaConfigEntry) -> bo
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ForecaConfigEntry) -> bool:
+    """Unload a config entry."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

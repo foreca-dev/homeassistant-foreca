@@ -1,13 +1,18 @@
-from __future__ import annotations
+"""Config flow for the Foreca integration."""
 
 import logging
-from typing import Any
+from typing import Any, override
 
-import voluptuous as vol
 from pyforeca import ForecaApiClient, ForecaAuthError, ForecaError, format_location
+import voluptuous as vol
 
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
-from homeassistant.const import CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE
+from homeassistant.const import (
+    CONF_API_KEY,
+    CONF_LATITUDE,
+    CONF_LOCATION,
+    CONF_LONGITUDE,
+)
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import LocationSelector
 
@@ -15,15 +20,15 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-CONF_LOCATION = "location"
-
 
 class ForecaConfigFlow(ConfigFlow, domain=DOMAIN):
-    VERSION = 1
+    """Handle a config flow for Foreca."""
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
+        """Handle the initial step."""
         errors: dict[str, str] = {}
         if user_input is not None:
             latitude = user_input[CONF_LOCATION][CONF_LATITUDE]
@@ -55,18 +60,19 @@ class ForecaConfigFlow(ConfigFlow, domain=DOMAIN):
                     },
                 )
 
-        schema = vol.Schema(
-            {
-                vol.Required(CONF_API_KEY): str,
-                vol.Required(
-                    CONF_LOCATION,
-                    default={
-                        CONF_LATITUDE: self.hass.config.latitude,
-                        CONF_LONGITUDE: self.hass.config.longitude,
-                    },
-                ): LocationSelector(),
-            }
-        )
         return self.async_show_form(
-            step_id="user", data_schema=schema, errors=errors
+            step_id="user",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_API_KEY): str,
+                    vol.Required(
+                        CONF_LOCATION,
+                        default={
+                            CONF_LATITUDE: self.hass.config.latitude,
+                            CONF_LONGITUDE: self.hass.config.longitude,
+                        },
+                    ): LocationSelector(),
+                }
+            ),
+            errors=errors,
         )

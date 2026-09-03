@@ -1,4 +1,4 @@
-from __future__ import annotations
+"""Constants for the Foreca integration."""
 
 from datetime import timedelta
 

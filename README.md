@@ -6,10 +6,20 @@
 Weather integration for [Home Assistant](https://www.home-assistant.io) backed by
 the [Foreca Weather API](https://developer.foreca.com).
 
+One weather entity and 32 sensors:
+
 - `weather` entity with current conditions, a 10-day daily forecast and a 48-hour
   hourly forecast
-- Air-quality sensors: general AQI, dominant pollutant, per-pollutant sub-indices
-  (disabled by default), and daily AQI for the next three days
+- Precipitation nowcast: when precipitation starts within the next hour, and the
+  average and total expected over that hour
+- Measurements from the nearest reporting weather station: temperature, humidity,
+  and — disabled by default — pressure, wind speed, wind gust speed and snow depth
+- Today's outlook: thunderstorm probability, precipitation intensity and type,
+  solar radiation now and for the day, snow depth, snow accumulation, sunshine
+  duration and Foreca's own forecast confidence
+- Air quality: general AQI, dominant pollutant, daily AQI for the next three days,
+  and per-pollutant sub-indices (disabled by default)
+- Plan usage: requests made today and this month, so you can watch your quota
 
 Air quality follows the US EPA air quality index. The values come from atmospheric
 composition models, blended with measurements from air quality monitoring stations
@@ -20,8 +30,9 @@ then fade into the model. Further from any station, the values are model output 
 
 Create a free account at [developer.foreca.com](https://developer.foreca.com),
 pick the Freemium plan, verify your email and copy the key from **My API**. The
-integration polls every 30 minutes (five requests per poll, about 240 per day),
-well inside the Freemium plan's 2,000 requests per day.
+integration polls every 30 minutes, eight requests per poll for one location, so
+about 384 requests per day. That is well inside the Freemium plan's 2,000 requests
+per day; the count doubles for a second location, and the limit allows about five.
 
 The Freemium plan is free for non-commercial use — hobbyist, student, and research
 projects — and is provided without an SLA or support. Commercial use, a larger quota, or the
@@ -36,10 +47,9 @@ This is the development home for the integration on its way into
 lets it run as-is in a development Home Assistant instance in the meantime. The
 API client lives in [pyforeca](https://github.com/foreca-dev/pyforeca).
 
-The version prepared for Home Assistant Core carries more sensors than the copy
-here — observations, precipitation nowcast and request-usage counts on top of the
-weather and air-quality entities. This repository will catch up with it, or be
-archived, once the Core integration is merged.
+The component here is kept in step with the version prepared for Core; the two
+differ only in packaging. This repository will be archived once the Core
+integration is merged.
 
 ## Development
 

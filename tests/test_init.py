@@ -1,0 +1,92 @@
+"""Test the Foreca integration setup."""
+
+from unittest.mock import AsyncMock, MagicMock
+
+from pyforeca import ForecaAuthError, ForecaConnectionError
+import pytest
+
+from homeassistant.config_entries import ConfigEntryState
+from homeassistant.core import HomeAssistant
+
+from . import init_integration
+
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+
+@pytest.mark.usefixtures("mock_foreca_client")
+async def test_load_unload_entry(
+    hass: HomeAssistant, mock_config_entry: MockConfigEntry
+) -> None:
+    """Test loading and unloading the config entry."""
+    await init_integration(hass, mock_config_entry)
+    assert mock_config_entry.state is ConfigEntryState.LOADED
+
+    await hass.config_entries.async_unload(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+    assert mock_config_entry.state is ConfigEntryState.NOT_LOADED
+
+
+async def test_setup_retries_on_connection_error(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_foreca_client: MagicMock,
+) -> None:
+    """Test the entry is retried when the API is unreachable."""
+    mock_foreca_client.current.side_effect = ForecaConnectionError
+    await init_integration(hass, mock_config_entry)
+    assert mock_config_entry.state is ConfigEntryState.SETUP_RETRY
+
+
+async def test_setup_fails_auth_on_rejected_key(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_foreca_client: MagicMock,
+) -> None:
+    """Test a rejected API key puts the entry into an auth-failed state."""
+    mock_foreca_client.current.side_effect = ForecaAuthError
+    await init_integration(hass, mock_config_entry)
+    assert mock_config_entry.state is ConfigEntryState.SETUP_ERROR
+
+
+async def test_setup_fails_auth_when_air_quality_rejects_key(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_foreca_client: MagicMock,
+) -> None:
+    """Test a key rejected by the air quality endpoint fails the entry."""
+    mock_foreca_client.air_quality_hourly.side_effect = ForecaAuthError
+    await init_integration(hass, mock_config_entry)
+    assert mock_config_entry.state is ConfigEntryState.SETUP_ERROR
+
+
+async def test_documented_request_budget(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_foreca_client: MagicMock,
+) -> None:
+    """Test one update costs the eight requests the documentation promises.
+
+    The docs page and the plan-usage sensors both quote this number against the
+    Freemium daily limit, so a new call added to the coordinator has to be a
+    deliberate change here too.
+    """
+    await init_integration(hass, mock_config_entry)
+
+    awaited = {
+        name: attr.await_count
+        for name in dir(mock_foreca_client)
+        if not name.startswith("_")
+        and isinstance(attr := getattr(mock_foreca_client, name), AsyncMock)
+        and attr.await_count
+    }
+    assert awaited == {
+        "air_quality_daily": 1,
+        "air_quality_hourly": 1,
+        "current": 1,
+        "forecast_daily": 1,
+        "forecast_hourly": 1,
+        "forecast_minutely": 1,
+        "observation_latest": 1,
+        "usage_month": 1,
+    }
+    assert sum(awaited.values()) == 8

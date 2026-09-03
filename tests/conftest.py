@@ -1,7 +1,8 @@
+"""Common fixtures for the Foreca tests."""
+
 from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 from pyforeca import (
     AirQualityDailyForecast,
     AirQualityForecast,
@@ -9,15 +10,23 @@ from pyforeca import (
     DailyForecast,
     HourlyForecast,
     Location,
+    MinutelyForecast,
+    Observation,
+    UsageDay,
+    UsageMonth,
 )
+import pytest
+from pytest_homeassistant_custom_component.syrupy import (
+    HomeAssistantSnapshotExtension,
+)
+from syrupy.assertion import SnapshotAssertion
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
+from custom_components.foreca.const import DOMAIN
+from homeassistant.const import CONF_API_KEY, CONF_LATITUDE, CONF_LONGITUDE
 
-@pytest.fixture(autouse=True)
-def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
-    """Enable loading custom integrations in all tests."""
-
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 CURRENT = CurrentWeather(
     time="2026-09-01T17:00+03:00",
@@ -31,6 +40,8 @@ CURRENT = CurrentWeather(
     wind_dir=210,
     wind_gust=8.0,
     precip_prob=5,
+    precip_rate=0.0,
+    thunder_prob=8,
     cloudiness=40,
     uv_index=2,
     pressure=1013.2,
@@ -50,6 +61,10 @@ HOURLY = [
         precip_accum=0.0,
         rel_humidity=70,
         cloudiness=60,
+        uv_index=1,
+        precip_type="rain",
+        solar_radiation=141.0,
+        snow_depth=0.0,
     )
 ]
 
@@ -65,7 +80,18 @@ DAILY = [
         max_wind_gust=11.0,
         wind_dir=225,
         uv_index=3,
-    )
+        sunhours=6.4,
+        confidence="g",
+    ),
+    DailyForecast(
+        date="2026-09-03",
+        symbol="d212",
+        max_temp=12.0,
+        min_temp=4.0,
+        precip_accum=0.4,
+        max_wind_speed=5.0,
+        wind_dir=180,
+    ),
 ]
 
 AIR_QUALITY = AirQualityForecast(
@@ -88,6 +114,41 @@ AIR_QUALITY_DAILY = [
     AirQualityDailyForecast(date="2026-09-04", aqi=31, pollutant="Ozone"),
 ]
 
+OBSERVATION = Observation(
+    time="2026-09-01T16:50+03:00",
+    station="Helsinki Kaisaniemi",
+    distance="1 km N",
+    elevation=4,
+    latitude=60.18,
+    longitude=24.94,
+    symbol="d000",
+    temperature=18.0,
+    feels_like_temp=18.0,
+    rel_humidity=71,
+    pressure=1006.0,
+    visibility=38150,
+    wind_speed=5.0,
+    wind_dir=216,
+    wind_dir_str="SW",
+    wind_gust=9.0,
+    snow_depth=0.0,
+)
+
+MINUTELY = [
+    MinutelyForecast(time="2026-09-01T17:00+03:00", precip_rate=0.0),
+    MinutelyForecast(time="2026-09-01T17:01+03:00", precip_rate=0.0),
+    MinutelyForecast(time="2026-09-01T17:02+03:00", precip_rate=0.6),
+    MinutelyForecast(time="2026-09-01T17:03+03:00", precip_rate=1.2),
+]
+
+USAGE = UsageMonth(
+    hits=44,
+    daily=[
+        UsageDay(date="2026-09-01", hits=23),
+        UsageDay(date="2026-09-03", hits=21),
+    ],
+)
+
 LOCATION = Location(
     id=100658225,
     name="Helsinki",
@@ -99,21 +160,71 @@ LOCATION = Location(
 
 
 @pytest.fixture
-def mock_client() -> Generator[MagicMock]:
+def mock_setup_entry() -> Generator[AsyncMock]:
+    """Override async_setup_entry."""
+    with patch(
+        "custom_components.foreca.async_setup_entry", return_value=True
+    ) as mock_setup:
+        yield mock_setup
+
+
+@pytest.fixture
+def mock_foreca_client() -> Generator[MagicMock]:
+    """Mock the Foreca API client."""
     with (
         patch(
-            "custom_components.foreca.config_flow.ForecaApiClient", autospec=True
-        ) as flow_client_cls,
-        patch(
             "custom_components.foreca.coordinator.ForecaApiClient",
-            new=flow_client_cls,
+            autospec=True,
+        ) as client_cls,
+        patch(
+            "custom_components.foreca.config_flow.ForecaApiClient",
+            new=client_cls,
         ),
     ):
-        client = flow_client_cls.return_value
+        client = client_cls.return_value
         client.location_info = AsyncMock(return_value=LOCATION)
         client.current = AsyncMock(return_value=CURRENT)
         client.forecast_hourly = AsyncMock(return_value=HOURLY)
         client.forecast_daily = AsyncMock(return_value=DAILY)
         client.air_quality_hourly = AsyncMock(return_value=[AIR_QUALITY])
         client.air_quality_daily = AsyncMock(return_value=AIR_QUALITY_DAILY)
+        client.observation_latest = AsyncMock(return_value=OBSERVATION)
+        client.forecast_minutely = AsyncMock(return_value=MINUTELY)
+        client.usage_month = AsyncMock(return_value=USAGE)
         yield client
+
+
+@pytest.fixture
+def mock_config_entry() -> MockConfigEntry:
+    """Return a mock config entry."""
+    return MockConfigEntry(
+        domain=DOMAIN,
+        title="Helsinki",
+        entry_id="01JZ4Q1F0RECA0000000000000",
+        unique_id="60.1700-24.9400",
+        data={
+            CONF_API_KEY: "test-key",
+            CONF_LATITUDE: 60.17,
+            CONF_LONGITUDE: 24.94,
+        },
+    )
+
+
+@pytest.fixture(autouse=True)
+def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
+    """Enable loading custom integrations in all tests."""
+
+@pytest.fixture
+def entity_registry_enabled_by_default() -> Generator[None]:
+    """Enable entities that are disabled by default, as Core's own fixture does."""
+    with patch(
+        "homeassistant.helpers.entity.Entity.entity_registry_enabled_default",
+        return_value=True,
+    ):
+        yield
+
+
+@pytest.fixture
+def snapshot(snapshot: SnapshotAssertion) -> SnapshotAssertion:
+    """Return snapshot assertion fixture with the Home Assistant extension."""
+    return snapshot.use_extension(HomeAssistantSnapshotExtension)
