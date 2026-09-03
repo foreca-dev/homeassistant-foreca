@@ -18,8 +18,11 @@ monitoring-station measurement.
 
 Create a free account at [developer.foreca.com](https://developer.foreca.com),
 pick the Freemium plan, verify your email and copy the key from **My API**. The
-integration polls every 30 minutes (five requests per poll, about 240 per day),
+integration polls every 30 minutes (eight requests per poll, about 384 per day),
 well inside the Freemium plan's 2,000 requests per day.
+
+The Freemium plan is free for non-commercial use — hobbyist, student, and research
+projects — and is provided without an SLA or support. Commercial use needs a paid plan.
 
 ## Status
 
