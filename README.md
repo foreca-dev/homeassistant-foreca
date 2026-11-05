@@ -41,15 +41,28 @@ rest of Foreca's weather products need a
 
 ## Status
 
-This is the development home for the integration on its way into
+Foreca is built into Home Assistant from 2026.11. Add it under **Settings** >
+**Devices & services**; the [integration page](https://www.home-assistant.io/integrations/foreca)
+covers setup. The built-in integration has the weather entity so far, and
+sensors for current conditions are on their way into
 [Home Assistant Core](https://github.com/home-assistant/core)
-(`homeassistant/components/foreca/`). The `custom_components/foreca/` layout
-lets it run as-is in a development Home Assistant instance in the meantime. The
-API client lives in [pyforeca](https://github.com/foreca-dev/pyforeca).
+(`homeassistant/components/foreca/`). Core serves forecast values only through
+the weather entity's `weather.get_forecasts` action, so the sensors here that
+read a forecast step (today's outlook, the precipitation nowcast, the daily air
+quality) stay in this repository. The API client lives in
+[pyforeca](https://github.com/foreca-dev/pyforeca).
 
-The component here is kept in step with the version prepared for Core; the two
-differ only in packaging. This repository will be archived once the Core
-integration is merged.
+Both use the domain `foreca`, so a copy of this repository in
+`custom_components/foreca` takes the place of the built-in integration. The two
+store their entries differently: this copy makes one entry per location, the
+built-in one makes one entry per API key with locations under it. An entry made
+here loads under the built-in integration without any weather entity. To switch:
+
+1. Delete the Foreca entries under **Settings** > **Devices & services**.
+2. Remove `custom_components/foreca` and restart Home Assistant.
+3. Add Foreca again with the same API key.
+
+This repository will be archived once the current-condition sensors are in Core.
 
 ## Development
 
